@@ -28,7 +28,7 @@ setup(
     version=f5_os_test.__version__,
     author='F5 Networks',
     author_email='f5_common_python@f5.com',
-#    url='https://github.com/F5Networks/f5-openstack-test',
+    url='https://github.com/F5Networks/f5-openstack-test',
     keywords=['F5', 'openstack', 'test'],
     install_requires=[],
     packages=['f5_os_test'],
