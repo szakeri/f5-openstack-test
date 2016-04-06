@@ -99,6 +99,18 @@ class NeutronClientPollingManager(PollingMixin):
             attempts = attempts + 1
             if attempts > self.max_attempts:
                 raise MaximumNumberOfAttemptsExceeded
+        return True
+
+    def delete_all_listeners(self):
+        for listener in self.client.list_listeners()['listeners']:
+            self.client.delete_listener(listener['id'])
+        attempts = 0
+        while self.client.list_listeners()['listeners']:
+            time.sleep(self.interval)
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return True
 
     def create_listener(self, listener_conf):
         init_listener = self.client.create_listener(listener_conf)
@@ -112,6 +124,18 @@ class NeutronClientPollingManager(PollingMixin):
             if attempts > self.max_attempts:
                 raise MaximumNumberOfAttemptsExceeded
         return init_listener
+
+    def delete_listener(self, listener_id):
+        self.client.delete_listener(listener_id)
+        lids = [l['id'] for l in self.client.list_listeners()['listeners']]
+        attempts = 0
+        while listener_id in lids:
+            time.sleep(self.interval)
+            lids = [l['id'] for l in self.client.list_listeners()['listeners']]
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return True
 
     def __getattr__(self, name):
         if hasattr(self.client, name):
