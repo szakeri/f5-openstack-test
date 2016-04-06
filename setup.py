@@ -17,7 +17,6 @@
 
 import f5_os_test
 
-from setuptools import find_packages
 from setuptools import setup
 
 
@@ -30,8 +29,15 @@ setup(
     author_email='f5_common_python@f5.com',
     url='https://github.com/F5Networks/f5-openstack-test',
     keywords=['F5', 'openstack', 'test'],
-    install_requires=[],
+    install_requires=['requests >= 2.9.1',
+                      'pytest >= 2.9.1',
+                      'pytest-cov >= 2.2.1',
+                      'mock >= 1.3.0'],
     packages=['f5_os_test'],
+    entry_points={
+        'pytest11': ['poll_fix = f5_os_test.polling_clients',
+                     'infra_fix = f5_os_test.infrastructure']
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
