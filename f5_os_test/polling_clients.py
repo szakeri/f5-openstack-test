@@ -32,6 +32,10 @@ import pytest
 import time
 
 
+# flake8 hack
+pp(BigIP)
+
+
 class MaximumNumberOfAttemptsExceeded(Exception):
     pass
 
@@ -153,12 +157,13 @@ class NeutronClientPollingManager(PollingMixin):
                 raise MaximumNumberOfAttemptsExceeded
         return True
 
-    def delete_lbaas_pool(self, pid):
+    def _poll_call_with_exceptions(self, exceptional, call, *args, **kwargs):
         attempts = 0
         while attempts < self.max_attempts:
             try:
-                self.client.delete_lbaas_pool(pid)
-            except StateInvalidClient as e:
+                print(args)
+                retval = call(*args)
+            except exceptional as e:
                 pp(type(e))
                 pp(e.message)
                 time.sleep(self.interval)
@@ -167,8 +172,16 @@ class NeutronClientPollingManager(PollingMixin):
                     raise MaximumNumberOfAttemptsExceeded
                 continue
             break
+        return retval
+
+    def delete_lbaas_pool(self, pool_id):
+        self.delete_all_lbaas_pool_members(pool_id)
+        self._poll_call_with_exceptions(
+            StateInvalidClient,
+            self.client.delete_lbaas_pool,
+            pool_id)
         attempts = 0
-        while pid in\
+        while pool_id in\
                 [p['id'] for p in self.client.list_lbaas_pools()['pools']]:
             time.sleep(self.interval)
             attempts = attempts + 1
@@ -177,30 +190,67 @@ class NeutronClientPollingManager(PollingMixin):
         return True
 
     def create_lbaas_pool(self, pool_config):
+        pool = self._poll_call_with_exceptions(
+            StateInvalidClient,
+            self.client.create_lbaas_pool,
+            pool_config)
         attempts = 0
-        while attempts < self.max_attempts:
-            attempts = attempts + 1
-            try:
-                pool = self.client.create_lbaas_pool(pool_config)
-            except StateInvalidClient as e:
-                pp(type(e))
-                pp(e.message)
-                time.sleep(self.interval)
-                continue
-            break
-        if attempts > self.max_attempts:
-            raise MaximumNumberOfAttemptsExceeded
-        attempts = 0
-        pp('about to pp pool *********************')
-        pp(pool)
-        pid = pool['pool']['id']
-        while pid not in\
+        pool_id = pool['pool']['id']
+        while pool_id not in\
                 [p['id'] for p in self.client.list_lbaas_pools()['pools']]:
             time.sleep(self.interval)
             attempts = attempts + 1
             if attempts > self.max_attempts:
                 raise MaximumNumberOfAttemptsExceeded
         return pool
+
+    def create_lbaas_member(self, pool_id, member_config):
+        member = self._poll_call_with_exceptions(
+            StateInvalidClient,
+            self.client.create_lbaas_member,
+            pool_id, member_config)
+        attempts = 0
+        member_id = member['member']['id']
+        while member_id not in [
+                m['id'] for m in
+                self.client.list_lbaas_members(pool_id)['members']
+                ]:
+            time.sleep(self.interval)
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return member
+
+    def delete_lbaas_member(self, member_id, pool_id):
+        self._poll_call_with_exceptions(
+            StateInvalidClient,
+            self.client.delete_lbaas_member,
+            member_id, pool_id)
+        attempts = 0
+        while member_id in [
+                m['id'] for m in
+                self.client.list_lbaas_members(pool_id)['members']
+                ]:
+            time.sleep(self.interval)
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return True
+
+    def delete_all_lbaas_pool_members(self, pool_id):
+        for member in self.client.list_lbaas_members(pool_id)['members']:
+            try:
+                self.delete_lbaas_member(member['id'], pool_id)
+            except NotFound:
+                continue
+        attempts = 0
+        pp(self.client.list_lbaas_members(pool_id)['members'])
+        while self.client.list_lbaas_members(pool_id)['members']:
+            time.sleep(self.interval)
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return True
 
     def __getattr__(self, name):
         if hasattr(self.client, name):
