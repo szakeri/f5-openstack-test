@@ -26,6 +26,7 @@ familiar enough with OS to make that leap.
 '''
 from f5.bigip import BigIP
 from neutronclient.common.exceptions import NotFound
+from neutronclient.common.exceptions import StateInvalidClient
 from pprint import pprint as pp
 import pytest
 import time
@@ -136,6 +137,70 @@ class NeutronClientPollingManager(PollingMixin):
             if attempts > self.max_attempts:
                 raise MaximumNumberOfAttemptsExceeded
         return True
+
+    def delete_all_lbaas_pools(self):
+        for pool in self.client.list_lbaas_pools()['pools']:
+            try:
+                self.delete_lbaas_pool(pool['id'])
+            except NotFound:
+                continue
+        attempts = 0
+        pp(self.client.list_lbaas_pools()['pools'])
+        while self.client.list_lbaas_pools()['pools']:
+            time.sleep(self.interval)
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return True
+
+    def delete_lbaas_pool(self, pid):
+        attempts = 0
+        while attempts < self.max_attempts:
+            try:
+                self.client.delete_lbaas_pool(pid)
+            except StateInvalidClient as e:
+                pp(type(e))
+                pp(e.message)
+                time.sleep(self.interval)
+                attempts = attempts + 1
+                if attempts > self.max_attempts:
+                    raise MaximumNumberOfAttemptsExceeded
+                continue
+            break
+        attempts = 0
+        while pid in\
+                [p['id'] for p in self.client.list_lbaas_pools()['pools']]:
+            time.sleep(self.interval)
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return True
+
+    def create_lbaas_pool(self, pool_config):
+        attempts = 0
+        while attempts < self.max_attempts:
+            attempts = attempts + 1
+            try:
+                pool = self.client.create_lbaas_pool(pool_config)
+            except StateInvalidClient as e:
+                pp(type(e))
+                pp(e.message)
+                time.sleep(self.interval)
+                continue
+            break
+        if attempts > self.max_attempts:
+            raise MaximumNumberOfAttemptsExceeded
+        attempts = 0
+        pp('about to pp pool *********************')
+        pp(pool)
+        pid = pool['pool']['id']
+        while pid not in\
+                [p['id'] for p in self.client.list_lbaas_pools()['pools']]:
+            time.sleep(self.interval)
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return pool
 
     def __getattr__(self, name):
         if hasattr(self.client, name):
