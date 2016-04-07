@@ -68,13 +68,11 @@ class NeutronClientPollingManager(PollingMixin):
         self.client = neutronclient
 
     def create_loadbalancer(self, lbconf):
-        print("Entered manager create_loadbalancer.")
         init_lb = self.client.create_loadbalancer(lbconf)
         lbid = init_lb['loadbalancer']['id']
 
         def lb_reader(loadbalancer):
             return loadbalancer['loadbalancer']['provisioning_status']
-        print("About to start polling creation.")
         return self.poll(self.client.show_loadbalancer, lbid, lb_reader)
 
     def _lb_delete_helper(self, lbid):
@@ -142,30 +140,12 @@ class NeutronClientPollingManager(PollingMixin):
                 raise MaximumNumberOfAttemptsExceeded
         return True
 
-    def delete_all_lbaas_pools(self):
-        for pool in self.client.list_lbaas_pools()['pools']:
-            try:
-                self.delete_lbaas_pool(pool['id'])
-            except NotFound:
-                continue
-        attempts = 0
-        pp(self.client.list_lbaas_pools()['pools'])
-        while self.client.list_lbaas_pools()['pools']:
-            time.sleep(self.interval)
-            attempts = attempts + 1
-            if attempts > self.max_attempts:
-                raise MaximumNumberOfAttemptsExceeded
-        return True
-
     def _poll_call_with_exceptions(self, exceptional, call, *args, **kwargs):
         attempts = 0
         while attempts < self.max_attempts:
             try:
-                print(args)
                 retval = call(*args)
-            except exceptional as e:
-                pp(type(e))
-                pp(e.message)
+            except exceptional:
                 time.sleep(self.interval)
                 attempts = attempts + 1
                 if attempts > self.max_attempts:
@@ -173,6 +153,22 @@ class NeutronClientPollingManager(PollingMixin):
                 continue
             break
         return retval
+
+    # Begin lbaas pool section
+    def create_lbaas_pool(self, pool_config):
+        pool = self._poll_call_with_exceptions(
+            StateInvalidClient,
+            self.client.create_lbaas_pool,
+            pool_config)
+        attempts = 0
+        pool_id = pool['pool']['id']
+        while pool_id not in\
+                [p['id'] for p in self.client.list_lbaas_pools()['pools']]:
+            time.sleep(self.interval)
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return pool
 
     def delete_lbaas_pool(self, pool_id):
         self.delete_all_lbaas_pool_members(pool_id)
@@ -189,20 +185,19 @@ class NeutronClientPollingManager(PollingMixin):
                 raise MaximumNumberOfAttemptsExceeded
         return True
 
-    def create_lbaas_pool(self, pool_config):
-        pool = self._poll_call_with_exceptions(
-            StateInvalidClient,
-            self.client.create_lbaas_pool,
-            pool_config)
+    def delete_all_lbaas_pools(self):
+        for pool in self.client.list_lbaas_pools()['pools']:
+            try:
+                self.delete_lbaas_pool(pool['id'])
+            except NotFound:
+                continue
         attempts = 0
-        pool_id = pool['pool']['id']
-        while pool_id not in\
-                [p['id'] for p in self.client.list_lbaas_pools()['pools']]:
+        while self.client.list_lbaas_pools()['pools']:
             time.sleep(self.interval)
             attempts = attempts + 1
             if attempts > self.max_attempts:
                 raise MaximumNumberOfAttemptsExceeded
-        return pool
+        return True
 
     def create_lbaas_member(self, pool_id, member_config):
         member = self._poll_call_with_exceptions(
@@ -243,14 +238,49 @@ class NeutronClientPollingManager(PollingMixin):
                 self.delete_lbaas_member(member['id'], pool_id)
             except NotFound:
                 continue
+        return True
+
+    def delete_lbaas_healthmonitor(self, healthmonitor_id):
+        self._poll_call_with_exceptions(
+            StateInvalidClient,
+            self.client.delete_lbaas_healthmonitor,
+            healthmonitor_id)
         attempts = 0
-        pp(self.client.list_lbaas_members(pool_id)['members'])
-        while self.client.list_lbaas_members(pool_id)['members']:
+        while healthmonitor_id in [
+                hm['id'] for hm in
+                self.client.list_lbaas_healthmonitors()['healthmonitors']
+                ]:
             time.sleep(self.interval)
             attempts = attempts + 1
             if attempts > self.max_attempts:
                 raise MaximumNumberOfAttemptsExceeded
         return True
+
+    def delete_all_lbaas_healthmonitors(self):
+        for healthmonitor in\
+                self.client.list_lbaas_healthmonitors()['healthmonitors']:
+            try:
+                self.delete_lbaas_healthmonitor(healthmonitor['id'])
+            except NotFound:
+                continue
+        return True
+
+    def create_lbaas_healthmonitor(self, monitor_config):
+        healthmonitor = self._poll_call_with_exceptions(
+            StateInvalidClient,
+            self.client.create_lbaas_healthmonitor,
+            monitor_config)
+        healthmonitor_id = healthmonitor['healthmonitor']['id']
+        attempts = 0
+        while healthmonitor_id not in [
+                hm['id'] for hm in
+                self.client.list_lbaas_healthmonitors()['healthmonitors']
+                ]:
+            time.sleep(self.interval)
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return healthmonitor
 
     def __getattr__(self, name):
         if hasattr(self.client, name):
