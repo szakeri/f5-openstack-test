@@ -67,6 +67,11 @@ class NeutronClientPollingManager(PollingMixin):
             raise TypeError("Unexpected **kwargs: %r" % kwargs)
         self.client = neutronclient
 
+    def __getattr__(self, name):
+        if hasattr(self.client, name):
+            return getattr(self.client, name)
+
+    # begin loadbalancer section
     def create_loadbalancer(self, lbconf):
         init_lb = self.client.create_loadbalancer(lbconf)
         lbid = init_lb['loadbalancer']['id']
@@ -93,28 +98,9 @@ class NeutronClientPollingManager(PollingMixin):
 
     def delete_all_loadbalancers(self):
         for lb in self.client.list_loadbalancers()['loadbalancers']:
-            self.client.delete_loadbalancer(lb['id'])
-        balancers = self.client.list_loadbalancers()['loadbalancers']
-        attempts = 0
-        while balancers:
-            time.sleep(self.interval)
-            balancers = self.client.list_loadbalancers()['loadbalancers']
-            attempts = attempts + 1
-            if attempts > self.max_attempts:
-                raise MaximumNumberOfAttemptsExceeded
-        return True
+            self.delete_loadbalancer(lb['id'])
 
-    def delete_all_listeners(self):
-        for listener in self.client.list_listeners()['listeners']:
-            self.client.delete_listener(listener['id'])
-        attempts = 0
-        while self.client.list_listeners()['listeners']:
-            time.sleep(self.interval)
-            attempts = attempts + 1
-            if attempts > self.max_attempts:
-                raise MaximumNumberOfAttemptsExceeded
-        return True
-
+    # begin listener section
     def create_listener(self, listener_conf):
         init_listener = self.client.create_listener(listener_conf)
         # The dict returned by show listener doesn't have a status.
@@ -135,6 +121,17 @@ class NeutronClientPollingManager(PollingMixin):
         while listener_id in lids:
             time.sleep(self.interval)
             lids = [l['id'] for l in self.client.list_listeners()['listeners']]
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return True
+
+    def delete_all_listeners(self):
+        for listener in self.client.list_listeners()['listeners']:
+            self.client.delete_listener(listener['id'])
+        attempts = 0
+        while self.client.list_listeners()['listeners']:
+            time.sleep(self.interval)
             attempts = attempts + 1
             if attempts > self.max_attempts:
                 raise MaximumNumberOfAttemptsExceeded
@@ -199,6 +196,7 @@ class NeutronClientPollingManager(PollingMixin):
                 raise MaximumNumberOfAttemptsExceeded
         return True
 
+    # Begin member section
     def create_lbaas_member(self, pool_id, member_config):
         member = self._poll_call_with_exceptions(
             StateInvalidClient,
@@ -240,6 +238,24 @@ class NeutronClientPollingManager(PollingMixin):
                 continue
         return True
 
+    # Begin healthmonitor section
+    def create_lbaas_healthmonitor(self, monitor_config):
+        healthmonitor = self._poll_call_with_exceptions(
+            StateInvalidClient,
+            self.client.create_lbaas_healthmonitor,
+            monitor_config)
+        healthmonitor_id = healthmonitor['healthmonitor']['id']
+        attempts = 0
+        while healthmonitor_id not in [
+                hm['id'] for hm in
+                self.client.list_lbaas_healthmonitors()['healthmonitors']
+                ]:
+            time.sleep(self.interval)
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return healthmonitor
+
     def delete_lbaas_healthmonitor(self, healthmonitor_id):
         self._poll_call_with_exceptions(
             StateInvalidClient,
@@ -264,27 +280,6 @@ class NeutronClientPollingManager(PollingMixin):
             except NotFound:
                 continue
         return True
-
-    def create_lbaas_healthmonitor(self, monitor_config):
-        healthmonitor = self._poll_call_with_exceptions(
-            StateInvalidClient,
-            self.client.create_lbaas_healthmonitor,
-            monitor_config)
-        healthmonitor_id = healthmonitor['healthmonitor']['id']
-        attempts = 0
-        while healthmonitor_id not in [
-                hm['id'] for hm in
-                self.client.list_lbaas_healthmonitors()['healthmonitors']
-                ]:
-            time.sleep(self.interval)
-            attempts = attempts + 1
-            if attempts > self.max_attempts:
-                raise MaximumNumberOfAttemptsExceeded
-        return healthmonitor
-
-    def __getattr__(self, name):
-        if hasattr(self.client, name):
-            return getattr(self.client, name)
 
 
 @pytest.fixture
