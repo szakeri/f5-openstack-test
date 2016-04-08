@@ -32,7 +32,9 @@ setup(
     install_requires=['requests >= 2.9.1',
                       'pytest >= 2.9.1',
                       'pytest-cov >= 2.2.1',
-                      'mock >= 1.3.0'],
+                      'mock >= 1.3.0',
+                      'f5-sdk >= 0.1.3',
+                      'python-neutronclient >= 4.1.2.dev5'],
     packages=['f5_os_test'],
     entry_points={
         'pytest11': ['poll_fix = f5_os_test.polling_clients',
