@@ -67,6 +67,7 @@ class NeutronClientPollingManager(PollingMixin):
             raise TypeError("Unexpected **kwargs: %r" % kwargs)
         self.client = neutronclient
 
+    # begin loadbalancer section
     def create_loadbalancer(self, lbconf):
         init_lb = self.client.create_loadbalancer(lbconf)
         lbid = init_lb['loadbalancer']['id']
@@ -93,16 +94,7 @@ class NeutronClientPollingManager(PollingMixin):
 
     def delete_all_loadbalancers(self):
         for lb in self.client.list_loadbalancers()['loadbalancers']:
-            self.client.delete_loadbalancer(lb['id'])
-        balancers = self.client.list_loadbalancers()['loadbalancers']
-        attempts = 0
-        while balancers:
-            time.sleep(self.interval)
-            balancers = self.client.list_loadbalancers()['loadbalancers']
-            attempts = attempts + 1
-            if attempts > self.max_attempts:
-                raise MaximumNumberOfAttemptsExceeded
-        return True
+            self.delete_loadbalancer(lb['id'])
 
     def delete_all_listeners(self):
         for listener in self.client.list_listeners()['listeners']:
