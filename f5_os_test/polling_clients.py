@@ -96,17 +96,7 @@ class NeutronClientPollingManager(PollingMixin):
         for lb in self.client.list_loadbalancers()['loadbalancers']:
             self.delete_loadbalancer(lb['id'])
 
-    def delete_all_listeners(self):
-        for listener in self.client.list_listeners()['listeners']:
-            self.client.delete_listener(listener['id'])
-        attempts = 0
-        while self.client.list_listeners()['listeners']:
-            time.sleep(self.interval)
-            attempts = attempts + 1
-            if attempts > self.max_attempts:
-                raise MaximumNumberOfAttemptsExceeded
-        return True
-
+    # begin listener section
     def create_listener(self, listener_conf):
         init_listener = self.client.create_listener(listener_conf)
         # The dict returned by show listener doesn't have a status.
@@ -127,6 +117,17 @@ class NeutronClientPollingManager(PollingMixin):
         while listener_id in lids:
             time.sleep(self.interval)
             lids = [l['id'] for l in self.client.list_listeners()['listeners']]
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return True
+
+    def delete_all_listeners(self):
+        for listener in self.client.list_listeners()['listeners']:
+            self.client.delete_listener(listener['id'])
+        attempts = 0
+        while self.client.list_listeners()['listeners']:
+            time.sleep(self.interval)
             attempts = attempts + 1
             if attempts > self.max_attempts:
                 raise MaximumNumberOfAttemptsExceeded
