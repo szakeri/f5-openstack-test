@@ -16,6 +16,8 @@
 from f5.bigip import BigIP
 import pytest
 
+from neutronclient.v2_0 import client
+
 
 def pytest_addoption(parser):
     parser.addoption("--bigip", action="store",
@@ -24,6 +26,8 @@ def pytest_addoption(parser):
                      default="admin")
     parser.addoption("--password", action="store", help="BIG-IP REST password",
                      default="admin")
+    parser.addoption('--auth_address', action='store',
+                     help="Keystone Authorization server name, or IP address.")
 
 
 @pytest.fixture
@@ -34,3 +38,18 @@ def bigip(request, scope="module"):
     opt_password = request.config.getoption("--password")
     b = BigIP(opt_bigip, opt_username, opt_password)
     return b
+
+
+@pytest.fixture
+def nclientmanager(request, polling_neutronclient):
+    auth_url = 'http://%s:5000/v2.0' %\
+        request.config.getoption('--auth_address')
+    nclient_config = {
+        'username': 'testlab',
+        'password': 'changeme',
+        'tenant_name': 'testlab',
+        'auth_url': auth_url}
+
+    neutronclient = client.Client(**nclient_config)
+    pnc = polling_neutronclient(neutronclient)
+    return pnc

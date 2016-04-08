@@ -67,6 +67,10 @@ class NeutronClientPollingManager(PollingMixin):
             raise TypeError("Unexpected **kwargs: %r" % kwargs)
         self.client = neutronclient
 
+    def __getattr__(self, name):
+        if hasattr(self.client, name):
+            return getattr(self.client, name)
+
     # begin loadbalancer section
     def create_loadbalancer(self, lbconf):
         init_lb = self.client.create_loadbalancer(lbconf)
@@ -192,6 +196,7 @@ class NeutronClientPollingManager(PollingMixin):
                 raise MaximumNumberOfAttemptsExceeded
         return True
 
+    # Begin member section
     def create_lbaas_member(self, pool_id, member_config):
         member = self._poll_call_with_exceptions(
             StateInvalidClient,
@@ -233,6 +238,24 @@ class NeutronClientPollingManager(PollingMixin):
                 continue
         return True
 
+    # Begin healthmonitor section
+    def create_lbaas_healthmonitor(self, monitor_config):
+        healthmonitor = self._poll_call_with_exceptions(
+            StateInvalidClient,
+            self.client.create_lbaas_healthmonitor,
+            monitor_config)
+        healthmonitor_id = healthmonitor['healthmonitor']['id']
+        attempts = 0
+        while healthmonitor_id not in [
+                hm['id'] for hm in
+                self.client.list_lbaas_healthmonitors()['healthmonitors']
+                ]:
+            time.sleep(self.interval)
+            attempts = attempts + 1
+            if attempts > self.max_attempts:
+                raise MaximumNumberOfAttemptsExceeded
+        return healthmonitor
+
     def delete_lbaas_healthmonitor(self, healthmonitor_id):
         self._poll_call_with_exceptions(
             StateInvalidClient,
@@ -257,27 +280,6 @@ class NeutronClientPollingManager(PollingMixin):
             except NotFound:
                 continue
         return True
-
-    def create_lbaas_healthmonitor(self, monitor_config):
-        healthmonitor = self._poll_call_with_exceptions(
-            StateInvalidClient,
-            self.client.create_lbaas_healthmonitor,
-            monitor_config)
-        healthmonitor_id = healthmonitor['healthmonitor']['id']
-        attempts = 0
-        while healthmonitor_id not in [
-                hm['id'] for hm in
-                self.client.list_lbaas_healthmonitors()['healthmonitors']
-                ]:
-            time.sleep(self.interval)
-            attempts = attempts + 1
-            if attempts > self.max_attempts:
-                raise MaximumNumberOfAttemptsExceeded
-        return healthmonitor
-
-    def __getattr__(self, name):
-        if hasattr(self.client, name):
-            return getattr(self.client, name)
 
 
 @pytest.fixture
