@@ -71,6 +71,20 @@ class NeutronClientPollingManager(PollingMixin):
         if hasattr(self.client, name):
             return getattr(self.client, name)
 
+    def _poll_call_with_exceptions(self, exceptional, call, *args, **kwargs):
+        attempts = 0
+        while attempts < self.max_attempts:
+            try:
+                retval = call(*args)
+            except exceptional:
+                time.sleep(self.interval)
+                attempts = attempts + 1
+                if attempts > self.max_attempts:
+                    raise MaximumNumberOfAttemptsExceeded
+                continue
+            break
+        return retval
+
     # begin loadbalancer section
     def create_loadbalancer(self, lbconf):
         init_lb = self.client.create_loadbalancer(lbconf)
@@ -102,7 +116,10 @@ class NeutronClientPollingManager(PollingMixin):
 
     # begin listener section
     def create_listener(self, listener_conf):
-        init_listener = self.client.create_listener(listener_conf)
+        init_listener = self._poll_call_with_exceptions(
+            StateInvalidClient,
+            self.client.create_listener,
+            listener_conf)
         # The dict returned by show listener doesn't have a status.
         lids = [l['id'] for l in self.client.list_listeners()['listeners']]
         attempts = 0
@@ -115,7 +132,10 @@ class NeutronClientPollingManager(PollingMixin):
         return init_listener
 
     def delete_listener(self, listener_id):
-        self.client.delete_listener(listener_id)
+        self._poll_call_with_exceptions(
+            StateInvalidClient,
+            self.client.delete_listener,
+            listener_id)
         lids = [l['id'] for l in self.client.list_listeners()['listeners']]
         attempts = 0
         while listener_id in lids:
@@ -129,27 +149,6 @@ class NeutronClientPollingManager(PollingMixin):
     def delete_all_listeners(self):
         for listener in self.client.list_listeners()['listeners']:
             self.client.delete_listener(listener['id'])
-        attempts = 0
-        while self.client.list_listeners()['listeners']:
-            time.sleep(self.interval)
-            attempts = attempts + 1
-            if attempts > self.max_attempts:
-                raise MaximumNumberOfAttemptsExceeded
-        return True
-
-    def _poll_call_with_exceptions(self, exceptional, call, *args, **kwargs):
-        attempts = 0
-        while attempts < self.max_attempts:
-            try:
-                retval = call(*args)
-            except exceptional:
-                time.sleep(self.interval)
-                attempts = attempts + 1
-                if attempts > self.max_attempts:
-                    raise MaximumNumberOfAttemptsExceeded
-                continue
-            break
-        return retval
 
     # Begin lbaas pool section
     def create_lbaas_pool(self, pool_config):
