@@ -73,7 +73,7 @@ class NeutronClientPollingManager(PollingMixin):
 
     def _poll_call_with_exceptions(self, exceptional, call, *args, **kwargs):
         attempts = 0
-        while attempts < self.max_attempts:
+        while attempts <= self.max_attempts:
             try:
                 retval = call(*args)
             except exceptional:
