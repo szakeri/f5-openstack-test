@@ -16,8 +16,6 @@
 from f5.bigip import BigIP
 import pytest
 
-from neutronclient.v2_0 import client
-
 
 def pytest_addoption(parser):
     parser.addoption("--bigip", action="store",
@@ -50,6 +48,5 @@ def nclientmanager(request, polling_neutronclient):
         'tenant_name': 'testlab',
         'auth_url': auth_url}
 
-    neutronclient = client.Client(**nclient_config)
-    pnc = polling_neutronclient(neutronclient)
+    pnc = polling_neutronclient(**nclient_config)
     return pnc
