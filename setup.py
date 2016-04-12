@@ -34,11 +34,15 @@ setup(
                       'pytest-cov >= 2.2.1',
                       'mock >= 1.3.0',
                       'f5-sdk >= 0.1.3',
-                      'python-neutronclient >= 4.1.2.dev5'],
+                      'python-neutronclient >= 4.1.2.dev5',
+                      'python-keystoneclient >= 2.3.1',
+                      'python-heatclient >= 1.1.0',
+                      'python-glanceclient >= 2.0.0'],
     packages=['f5_os_test'],
     entry_points={
         'pytest11': ['poll_fix = f5_os_test.polling_clients',
-                     'infra_fix = f5_os_test.infrastructure']
+                     'infra_fix = f5_os_test.infrastructure',
+                     'heat_utils = f5_os_test.heat_client_utils']
     },
     classifiers=[
         'Development Status :: 3 - Alpha',
