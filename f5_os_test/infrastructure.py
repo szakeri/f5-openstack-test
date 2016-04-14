@@ -142,9 +142,7 @@ def get_auth_config(request, keystoneclientmanager):
 
 
 @pytest.fixture
-def heatclientmanager(
-        request, keystoneclientmanager, heatclient_pollster, get_auth_config
-):
+def heatclientmanager(heatclient_pollster, get_auth_config):
     '''Heat client manager fixture.'''
     token, auth_address, tenant_id = get_auth_config
     config_dict = {
@@ -168,7 +166,7 @@ def keystoneclientmanager(request, keystoneclient_pollster):
 
 
 @pytest.fixture
-def glanceclientmanager(request, glanceclient_pollster, get_auth_config):
+def glanceclientmanager(glanceclient_pollster, get_auth_config):
     '''Glance client manager fixture.'''
     token, auth_address, _ = get_auth_config
     config_dict = {

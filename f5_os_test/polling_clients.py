@@ -361,9 +361,6 @@ class HeatClientPollingManager(HeatClient, ClientManagerMixin):
 
         super(HeatClientPollingManager, self).__init__(**kwargs)
 
-    def _client(self):
-        return super(HeatClientPollingManager, self)
-
     def stack_status(self, stack):
         return stack.stack_status
 
