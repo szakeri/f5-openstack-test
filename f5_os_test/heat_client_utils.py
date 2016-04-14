@@ -17,11 +17,11 @@
 import pytest
 
 
-def get_template_file(template_file):
-    file = open(template_file)
-    template_str = file.read()
+def get_file_contents(file_path):
+    file = open(file_path)
+    file_contents = file.read()
     file.close()
-    return template_str
+    return file_contents
 
 
 def cleanup_stack_if_exists(heat_client, template_name):
@@ -34,17 +34,17 @@ def cleanup_stack_if_exists(heat_client, template_name):
 @pytest.fixture
 def HeatStack(heatclientmanager, request):
     '''Fixture for creating/deleting a heat stack.'''
-    def manage_stack(template_file, template_name, parameters={}):
+    def manage_stack(template_file, stack_name, parameters={}):
         def teardown():
             heatclientmanager.delete_stack(stack.id)
 
-        template = get_template_file(template_file)
+        template = get_file_contents(template_file)
         config = {}
-        config['stack_name'] = template_name
+        config['stack_name'] = stack_name
         config['template'] = template
         config['parameters'] = parameters
         # Call delete before create, in case previous teardown failed
-        cleanup_stack_if_exists(heatclientmanager, template_name)
+        cleanup_stack_if_exists(heatclientmanager, stack_name)
         stack = heatclientmanager.create_stack(config)
         request.addfinalizer(teardown)
         return heatclientmanager, stack
