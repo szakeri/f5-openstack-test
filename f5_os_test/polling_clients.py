@@ -26,6 +26,7 @@ familiar enough with OS to make that leap.
 '''
 from f5.bigip import BigIP
 from glanceclient.v2.client import Client as GlanceClient
+from heatclient.exc import HTTPNotFound
 from heatclient.v1.client import Client as HeatClient
 from keystoneclient.v2_0.client import Client as KeystoneClient
 from neutronclient.common.exceptions import NotFound
@@ -383,10 +384,9 @@ class HeatClientPollingManager(HeatClient, ClientManagerMixin):
                 self.stack_status,
                 target_status='DELETE_COMPLETE'
             )
-        except Exception as ex:
-            if 'could not be found' not in ex:
-                raise
-        except MaximumNumberOfAttemptsExceeded as ex:
+        except HTTPNotFound:
+            raise
+        except MaximumNumberOfAttemptsExceeded:
             raise
 
 

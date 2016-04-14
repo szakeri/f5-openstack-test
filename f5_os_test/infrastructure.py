@@ -135,19 +135,19 @@ def setup_with_pool_member(setup_with_pool):
 
 @pytest.fixture
 def get_auth_config(request, keystoneclientmanager):
-    token = keystoneclientmanager.auth_ref['token']['id']
+    token_id = keystoneclientmanager.auth_ref['token']['id']
     auth_address = request.config.getoption('--auth-netloc')
     tenant_id = request.config.getoption('--os-tenant-id')
-    return token, auth_address, tenant_id
+    return token_id, auth_address, tenant_id
 
 
 @pytest.fixture
 def heatclientmanager(heatclient_pollster, get_auth_config):
     '''Heat client manager fixture.'''
-    token, auth_address, tenant_id = get_auth_config
+    token_id, auth_address, tenant_id = get_auth_config
     config_dict = {
         'endpoint': 'http://{0}:8004/v1/{1}'.format(auth_address, tenant_id),
-        'token': token
+        'token': token_id
     }
     return heatclient_pollster(**config_dict)
 
