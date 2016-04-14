@@ -19,22 +19,32 @@ import pytest
 
 
 def pytest_addoption(parser):
-    parser.addoption("--bigip", action="store",
+    parser.addoption("--bigip-netloc", action="store",
                      help="BIG-IP hostname or IP address")
-    parser.addoption("--username", action="store", help="BIG-IP REST username",
+    parser.addoption("--bigip-username", action="store",
+                     help="BIG-IP REST username",
                      default="admin")
-    parser.addoption("--password", action="store", help="BIG-IP REST password",
+    parser.addoption("--bigip-password", action="store",
+                     help="BIG-IP REST password",
                      default="admin")
-    parser.addoption('--auth_address', action='store',
+    parser.addoption("--auth-netloc", action="store",
                      help="Keystone Authorization server name, or IP address.")
+    parser.addoption("--os-tenant-id", action="store",
+                     help="ID for keystone tenant.")
+    parser.addoption("--os-username", action="store",
+                     help="Openstack username.")
+    parser.addoption("--os-password", action="store",
+                     help="Openstack password.")
+    parser.addoption("--os-tenant-name", action="store",
+                     help="Openstack tenant name.")
 
 
 @pytest.fixture
 def bigip(request, scope="module"):
     '''bigip fixture'''
-    opt_bigip = request.config.getoption("--bigip")
-    opt_username = request.config.getoption("--username")
-    opt_password = request.config.getoption("--password")
+    opt_bigip = request.config.getoption("--bigip-netloc")
+    opt_username = request.config.getoption("--bigip-username")
+    opt_password = request.config.getoption("--bigip-password")
     b = BigIP(opt_bigip, opt_username, opt_password)
     return b
 
@@ -42,7 +52,7 @@ def bigip(request, scope="module"):
 @pytest.fixture
 def nclientmanager(request, polling_neutronclient):
     auth_url = 'http://%s:5000/v2.0' %\
-        request.config.getoption('--auth_address')
+        request.config.getoption('--auth-netloc')
     nclient_config = {
         'username': 'testlab',
         'password': 'changeme',
@@ -121,3 +131,46 @@ def setup_with_pool_member(setup_with_pool):
                      'protocol_port': 80}}
     member = nclientmanager.create_lbaas_member(pool_id, member_config)
     return nclientmanager, activepool, member
+
+
+@pytest.fixture
+def get_auth_config(request, keystoneclientmanager):
+    token_id = keystoneclientmanager.auth_ref['token']['id']
+    auth_address = request.config.getoption('--auth-netloc')
+    tenant_id = request.config.getoption('--os-tenant-id')
+    return token_id, auth_address, tenant_id
+
+
+@pytest.fixture
+def heatclientmanager(heatclient_pollster, get_auth_config):
+    '''Heat client manager fixture.'''
+    token_id, auth_address, tenant_id = get_auth_config
+    config_dict = {
+        'endpoint': 'http://{0}:8004/v1/{1}'.format(auth_address, tenant_id),
+        'token': token_id
+    }
+    return heatclient_pollster(**config_dict)
+
+
+@pytest.fixture
+def keystoneclientmanager(request, keystoneclient_pollster):
+    '''Keystone client manager fixture.'''
+    auth_address = request.config.getoption('--auth-netloc')
+    config_dict = {
+        'auth_url': 'http://{}:5000/v2.0'.format(auth_address),
+        'tenant_name': request.config.getoption('--os-tenant-name'),
+        'username': request.config.getoption('--os-username'),
+        'password': request.config.getoption('--os-password')
+    }
+    return keystoneclient_pollster(**config_dict)
+
+
+@pytest.fixture
+def glanceclientmanager(glanceclient_pollster, get_auth_config):
+    '''Glance client manager fixture.'''
+    token, auth_address, _ = get_auth_config
+    config_dict = {
+        'endpoint': 'http://{}:9292'.format(auth_address),
+        'token': token
+    }
+    return glanceclient_pollster(**config_dict)
