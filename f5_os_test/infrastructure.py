@@ -134,6 +134,19 @@ def setup_with_pool_member(setup_with_pool):
 
 
 @pytest.fixture
+def setup_with_healthmonitor(setup_with_pool_member):
+    nclientmanager, activepool, activemember = setup_with_pool_member
+    monitor_config = {'healthmonitor': {
+                      'delay': 3,
+                      'pool_id': activepool['pool']['id'],
+                      'type': 'HTTP',
+                      'timeout': 13,
+                      'max_retries': 7}}
+    healthmonitor = nclientmanager.create_lbaas_healthmonitor(monitor_config)
+    return nclientmanager, healthmonitor, activepool, activemember
+
+
+@pytest.fixture
 def get_auth_config(request, keystoneclientmanager):
     token_id = keystoneclientmanager.auth_ref['token']['id']
     auth_address = request.config.getoption('--auth-netloc')
