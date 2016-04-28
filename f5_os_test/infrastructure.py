@@ -15,7 +15,7 @@
 
 from f5.bigip import BigIP
 from pprint import pprint as pp
-import pytest, re
+import pytest
 
 
 @pytest.fixture
@@ -23,10 +23,6 @@ def bigip(symbols, scope="module"):
     '''bigip fixture'''
     return BigIP(symbols.bigip_ip, symbols.bigip_username, symbols.bigip_password)
 
-@pytest.fixture
-def getAuthIPAddress(symbols, scope="modules"):
-    m = re.search("https?://(?P<ipaddress>.*?):", symbols.auth_url)
-    return m.group("ipaddress")
 
 @pytest.fixture
 def nclientmanager(symbols, polling_neutronclient):
@@ -124,20 +120,17 @@ def setup_with_healthmonitor(setup_with_pool_member):
 
 
 @pytest.fixture
-def get_auth_config(symbols, keystoneclientmanager, getAuthIPAddress):
+def get_auth_token(symbols, keystoneclientmanager):
     token_id = keystoneclientmanager.auth_ref['token']['id']
-    auth_address = getAuthIPAddress
-    tenant_id = symbols.os_tenant_id
-    return token_id, auth_address, tenant_id
+    return token_id
 
 
 @pytest.fixture
-def heatclientmanager(heatclient_pollster, get_auth_config):
+def heatclientmanager(heatclient_pollster, get_auth_token, symbols):
     '''Heat client manager fixture.'''
-    token_id, auth_address, tenant_id = get_auth_config
     config_dict = {
-        'endpoint': 'http://{0}:8004/v1/{1}'.format(auth_address, tenant_id),
-        'token': token_id
+        'endpoint': symbols.heatclient_url,
+        'token':    get_auth_token
     }
     return heatclient_pollster(**config_dict)
 
@@ -155,11 +148,10 @@ def keystoneclientmanager(symbols, keystoneclient_pollster):
 
 
 @pytest.fixture
-def glanceclientmanager(glanceclient_pollster, get_auth_config):
+def glanceclientmanager(glanceclient_pollster, get_auth_token, symbols):
     '''Glance client manager fixture.'''
-    token, auth_address, _ = get_auth_config
     config_dict = {
-        'endpoint': 'http://{}:9292'.format(auth_address),
-        'token': token
+        'endpoint': symbols.glanceclient_url,
+        'token':    get_auth_token
     }
     return glanceclient_pollster(**config_dict)
