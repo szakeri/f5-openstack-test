@@ -14,23 +14,144 @@
 #
 
 from f5.bigip import BigIP
+from pprint import pprint as pp
 import pytest
 
 
-def pytest_addoption(parser):
-    parser.addoption("--bigip", action="store",
-                     help="BIG-IP hostname or IP address")
-    parser.addoption("--username", action="store", help="BIG-IP REST username",
-                     default="admin")
-    parser.addoption("--password", action="store", help="BIG-IP REST password",
-                     default="admin")
+@pytest.fixture
+def bigip(symbols, scope="module"):
+    '''bigip fixture'''
+    return BigIP(symbols.bigip_ip, symbols.bigip_username, symbols.bigip_password)
 
 
 @pytest.fixture
-def bigip(request, scope="module"):
-    '''bigip fixture'''
-    opt_bigip = request.config.getoption("--bigip")
-    opt_username = request.config.getoption("--username")
-    opt_password = request.config.getoption("--password")
-    b = BigIP(opt_bigip, opt_username, opt_password)
-    return b
+def nclientmanager(symbols, polling_neutronclient):
+    nclient_config = {
+        'username':    symbols.tenant_username,
+        'password':    symbols.tenant_password,
+        'tenant_name': symbols.tenant_name,
+        'auth_url':    symbols.auth_url}
+
+    pnc = polling_neutronclient(**nclient_config)
+    return pnc
+
+
+@pytest.fixture
+def setup_with_nclientmanager(request, nclientmanager):
+    def finalize():
+        pp('Entered setup/finalize.')
+        nclientmanager.delete_all_lbaas_healthmonitors()
+        nclientmanager.delete_all_lbaas_pools()
+        nclientmanager.delete_all_listeners()
+        nclientmanager.delete_all_loadbalancers()
+
+    finalize()
+    request.addfinalizer(finalize)
+    return nclientmanager
+
+
+@pytest.fixture
+def setup_with_loadbalancer(setup_with_nclientmanager):
+    nclientmanager = setup_with_nclientmanager
+    subnets = nclientmanager.list_subnets()['subnets']
+    for sn in subnets:
+        if 'client-v4' in sn['name']:
+            lbconf = {'vip_subnet_id': sn['id'],
+                      'tenant_id':     sn['tenant_id'],
+                      'name':          'testlb_01'}
+    activelb =\
+        nclientmanager.create_loadbalancer({'loadbalancer': lbconf})
+    return nclientmanager, activelb
+
+
+@pytest.fixture
+def setup_with_listener(setup_with_loadbalancer):
+    nclientmanager, activelb = setup_with_loadbalancer
+    listener_config =\
+        {'listener': {'name': 'test_listener',
+                      'loadbalancer_id': activelb['loadbalancer']['id'],
+                      'protocol': 'HTTP',
+                      'protocol_port': 80}}
+    listener = nclientmanager.create_listener(listener_config)
+    return nclientmanager, listener
+
+
+@pytest.fixture
+def setup_with_pool(setup_with_listener):
+    nclientmanager, activelistener = setup_with_listener
+    pool_config = {'pool': {
+                   'name': 'test_pool_anur23rgg',
+                   'lb_algorithm': 'ROUND_ROBIN',
+                   'listener_id': activelistener['listener']['id'],
+                   'protocol': 'HTTP'}}
+    pool = nclientmanager.create_lbaas_pool(pool_config)
+    return nclientmanager, pool
+
+
+@pytest.fixture
+def setup_with_pool_member(setup_with_pool):
+    nclientmanager, activepool = setup_with_pool
+    pool_id = activepool['pool']['id']
+    for sn in nclientmanager.list_subnets()['subnets']:
+        if 'server-v4' in sn['name']:
+            address = sn['allocation_pools'][0]['start']
+            subnet_id = sn['id']
+            break
+
+    member_config = {'member': {
+                     'subnet_id': subnet_id,
+                     'address': address,
+                     'protocol_port': 80}}
+    member = nclientmanager.create_lbaas_member(pool_id, member_config)
+    return nclientmanager, activepool, member
+
+
+@pytest.fixture
+def setup_with_healthmonitor(setup_with_pool_member):
+    nclientmanager, activepool, activemember = setup_with_pool_member
+    monitor_config = {'healthmonitor': {
+                      'delay': 3,
+                      'pool_id': activepool['pool']['id'],
+                      'type': 'HTTP',
+                      'timeout': 13,
+                      'max_retries': 7}}
+    healthmonitor = nclientmanager.create_lbaas_healthmonitor(monitor_config)
+    return nclientmanager, healthmonitor, activepool, activemember
+
+
+@pytest.fixture
+def get_auth_token(keystoneclientmanager):
+    token_id = keystoneclientmanager.auth_ref['token']['id']
+    return token_id
+
+
+@pytest.fixture
+def heatclientmanager(heatclient_pollster, get_auth_token, symbols):
+    '''Heat client manager fixture.'''
+    config_dict = {
+        'endpoint': symbols.heatclient_url,
+        'token':    get_auth_token
+    }
+    return heatclient_pollster(**config_dict)
+
+
+@pytest.fixture
+def keystoneclientmanager(symbols, keystoneclient_pollster):
+    '''Keystone client manager fixture.'''
+    config_dict = {
+        'auth_url':    symbols.auth_url,
+        'tenant_name': symbols.os_tenant_name,
+        'username':    symbols.os_username,
+        'password':    symbols.os_password
+    }
+    return keystoneclient_pollster(**config_dict)
+
+
+@pytest.fixture
+def glanceclientmanager(glanceclient_pollster, get_auth_token, symbols):
+    '''Glance client manager fixture.'''
+    config_dict = {
+        'endpoint': symbols.glanceclient_url,
+        'token':    get_auth_token
+    }
+    return glanceclient_pollster(**config_dict)
