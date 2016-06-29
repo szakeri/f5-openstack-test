@@ -18,8 +18,8 @@ from pprint import pprint as pp
 import pytest
 
 
-@pytest.fixture
-def bigip(symbols, scope="module"):
+@pytest.fixture(scope="module")
+def bigip(symbols):
     '''bigip fixture'''
     return ManagementRoot(
         symbols.bigip_ip, symbols.bigip_username, symbols.bigip_password
