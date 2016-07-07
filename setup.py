@@ -36,7 +36,7 @@ setup(
                       'f5-sdk >= 0.1.7',
                       'python-neutronclient >= 2.3.11',
                       'python-keystoneclient >= 2.3.1',
-                      'python-heatclient >= 0.3.0',
+                      'python-heatclient >= 1.1.0',
                       'python-glanceclient >= 2.0.0',
                       'iso8601 >= 0.1.11',
                       'pytz >= 2013.6',
