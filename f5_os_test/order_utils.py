@@ -22,11 +22,13 @@ AGENT_LB_DEL_ORDER = {'/mgmt/tm/ltm/virtual':           1,
                       'mgmt/tm/net/self/':              6,
                       '/mgmt/tm/net/fdb':               7,
                       'mgmt/tm/net/tunnels/tunnel/':    8,
-                      'route':                          9,
-                      '/mgmt/tm/ltm/snatpool':         10,
-                      '/mgmt/tm/ltm/snat-translation': 11,
-                      '/mgmt/tm/net/route-domain':     12,
-                      '/mgmt/tm/sys/folder':           13}
+                      'mgmt/tm/net/tunnels/vxlan/':     9,
+                      'mgmt/tm/net/tunnels/gre':       10,
+                      'route':                         11,
+                      '/mgmt/tm/ltm/snatpool':         12,
+                      '/mgmt/tm/ltm/snat-translation': 13,
+                      '/mgmt/tm/net/route-domain':     14,
+                      '/mgmt/tm/sys/folder':           15}
 
 
 def order_by_weights(unordered, weights_table):
