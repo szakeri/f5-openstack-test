@@ -71,7 +71,7 @@ class NeutronClientPollingManager(NeutronClient, ClientManagerMixin):
     '''Invokes Neutronclient methods and polls for target expected states.'''
     def __init__(self, **kwargs):
         pp("got here in the constructor")
-        self.interval = kwargs.pop('interval', .4)
+        self.interval = kwargs.pop('interval', 2)
         self.max_attempts = kwargs.pop('max_attempts', 12)
         super(NeutronClientPollingManager, self).__init__(**kwargs)
 
@@ -108,13 +108,6 @@ class NeutronClientPollingManager(NeutronClient, ClientManagerMixin):
             return True
         return False
 
-    def update_loadbalancer(self, lbid, lbconf):
-        updated = self._poll_call_with_exceptions(
-            StateInvalidClient,
-            super(NeutronClientPollingManager, self).update_loadbalancer,
-            lbid, lbconf)
-        return updated
-
     def delete_loadbalancer(self, lbid):
         attempts = 0
         while not self._lb_delete_helper(lbid):
@@ -123,6 +116,13 @@ class NeutronClientPollingManager(NeutronClient, ClientManagerMixin):
             if attempts > self.max_attempts:
                 raise MaximumNumberOfAttemptsExceeded
         return True
+
+    def update_loadbalancer(self, lbid, lbconf):
+        updated = self._poll_call_with_exceptions(
+            StateInvalidClient,
+            super(NeutronClientPollingManager, self).update_loadbalancer,
+            lbid, lbconf)
+        return updated
 
     def delete_all_loadbalancers(self):
         for lb in super(NeutronClientPollingManager, self)\

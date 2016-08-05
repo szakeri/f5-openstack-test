@@ -14,14 +14,21 @@
 #
 
 
-AGENT_LB_DEL_ORDER = {'/mgmt/tm/ltm/virtual': 1,
-                      '/mgmt/tm/ltm/pool': 2,
-                      'mgmt/tm/ltm/node/': 3,
-                      'monitor': 4,
-                      'virtual-address': 5,
-                      '/mgmt/tm/net/fdb/tunnel': 6,
-                      'mgmt/tm/net/tunnels/tunnel/': 7,
-                      '/mgmt/tm/sys/folder': 8}
+AGENT_LB_DEL_ORDER = {'/mgmt/tm/ltm/virtual':           1,
+                      '/mgmt/tm/ltm/pool':              2,
+                      'mgmt/tm/ltm/node/':              3,
+                      'monitor':                        4,
+                      'virtual-address':                5,
+                      'mgmt/tm/net/self/':              6,
+                      '/mgmt/tm/net/fdb':               7,
+                      'mgmt/tm/net/tunnels/tunnel/':    8,
+                      'mgmt/tm/net/tunnels/vxlan/':     9,
+                      'mgmt/tm/net/tunnels/gre':       10,
+                      'route':                         11,
+                      '/mgmt/tm/ltm/snatpool':         12,
+                      '/mgmt/tm/ltm/snat-translation': 13,
+                      '/mgmt/tm/net/route-domain':     14,
+                      '/mgmt/tm/sys/folder':           15}
 
 
 def order_by_weights(unordered, weights_table):
@@ -36,12 +43,12 @@ def order_by_weights(unordered, weights_table):
     >>> order_by_weights([URI1, URI2, ...], AGENT_LB_DEL_ORDER)
     [URI2, URI1, ....]
     '''
-    max_plus_one = max(weights_table.values()) + 1
+    min_minus_one = min(weights_table.values()) - 1
 
     def order_key(item):
         for k in weights_table:
             if k in item:
                 return weights_table[k]
-        return max_plus_one
+        return min_minus_one
     ordered_by_weights = sorted(list(unordered), key=order_key)
     return ordered_by_weights
