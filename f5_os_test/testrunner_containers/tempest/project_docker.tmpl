@@ -21,7 +21,7 @@ RUN pip install git+https://github.com/openstack/neutron.git@stable/{{ branch }}
 RUN pip install git+https://github.com/openstack/neutron-lbaas.git@stable/{{ branch }}
 RUN mkdir -p /etc/{{ test_type }}
 RUN mkdir -p /root/{{ project }}
-RUN {{ test_type }} workspace register --name {{ test_type }}_test --path /root/{{ project }}/
+RUN {{ test_type }} workspace register --name {{ timestamp }}_test --path /root/{{ project }}/
 ADD {{ test_type  }}/run_{{ test_type }}.sh /root/
 WORKDIR /root/{{ project }}
 ENTRYPOINT ["/root/run_{{ test_type }}.sh"]

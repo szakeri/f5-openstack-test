@@ -33,19 +33,26 @@ def render_dockerfile(**kwargs):
 
 def build_container(test_type, project):
     '''Generate an image from the template and specification.'''
-    registry_fullname = "{}/{}".format(PDBLD_REGISTRY_PROJNAME, test_type)
+    registry_fullname = "{}/{}_{}".format(
+        PDBLD_REGISTRY_PROJNAME,
+        test_type,
+        project)
     project_dockerfile = join(test_type, project, 'Dockerfile')
     build_string = "docker build -t {} -f {} {}".format(registry_fullname,
                                                         project_dockerfile,
                                                         '.')
     subprocess.check_call(build_string.split())
+    pubstring = "docker push {}".format(registry_fullname)
+    subprocess.check_call(pubstring.split())
 
 def main():
     import sys
+    TIMESTAMP = time.time()
     render_dockerfile(test_type=sys.argv[1],
                       project=sys.argv[2],
                       branch=sys.argv[3],
-                      registry_project_name=PDBLD_REGISTRY_PROJNAME)
+                      registry_project_name=PDBLD_REGISTRY_PROJNAME,
+                      timestamp=TIMESTAMP)
     build_container(test_type=sys.argv[1], project=sys.argv[2])
 
 if __name__ == '__main__':
