@@ -26,7 +26,8 @@ import time
 PDBLD_REGISTRY_PROJNAME = 'docker-registry.pdbld.f5net.com/f5-openstack-test'
 def render_dockerfile(**kwargs):
     infname = join(kwargs['test_type'], 'project_docker.tmpl')
-    outfname = join(kwargs['test_type'], kwargs['project'], 'Dockerfile')
+    outdir = join(kwargs['test_type'], kwargs['project'])
+    outfname = join(outdir, 'Dockerfile')
     open(outfname, 'w').write(
         jinja2.Template(open(infname).read()).render(**kwargs)
     )
