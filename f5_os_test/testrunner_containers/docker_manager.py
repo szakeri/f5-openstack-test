@@ -33,7 +33,7 @@ def render_dockerfile(**kwargs):
 
 def build_container(test_type, project):
     '''Generate an image from the template and specification.'''
-    registry_fullname = "{}/{}_{}".format(
+    registry_fullname = "{}/{}_runner_{}".format(
         PDBLD_REGISTRY_PROJNAME,
         test_type,
         project)
