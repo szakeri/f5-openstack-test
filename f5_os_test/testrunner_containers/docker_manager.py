@@ -48,7 +48,7 @@ def build_container(test_type, project):
         test_type,
         project)
     project_dockerfile = join(test_type, project, 'Dockerfile')
-    build_string = "docker build -t {} -f {} {}".format(registry_fullname,
+    build_string = "echo build -t {} -f {} {}".format(registry_fullname,
                                                         project_dockerfile,
                                                         '.')
     logger.debug('registry_fullname: {}'.format(registry_fullname))
