@@ -29,6 +29,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
+CURRENTDIR=os.path.abspath(os.curdir)
 PDBLD_REGISTRY_PROJNAME = 'docker-registry.pdbld.f5net.com/f5-openstack-test'
 def render_dockerfile(**kwargs):
     infname = join(kwargs['test_type'], 'project_docker.tmpl')
@@ -53,7 +54,7 @@ def build_container(test_type, project):
     logger.debug(project_dockerfile)
     logger.debug(build_string)
     logger.debug('curdir: {}'.format(os.path.abspath(os.curdir)))
-    subprocess.check_call('echo $PWD'.split(), shell=True, cwd=__path__)
+    subprocess.check_call('echo $PWD'.split(), shell=True, cwd=CURRENTDIR)
     subprocess.check_call(build_string.split())
     pubstring = "docker push {}".format(registry_fullname)
     subprocess.check_call(pubstring.split())
