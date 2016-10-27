@@ -48,9 +48,20 @@ def _publish_testrunner_container(registry_fullname):
 
 def _build_testrunner_container(project_dockerfile, registry_fullname):
     '''Generate an image from the template and specification.'''
-    build_string = "docker build -t {} -f {} {}".format(registry_fullname,
-                                                        project_dockerfile,
-                                                        '.')
+    build_string = ("docker build "
+                    "--build-arg PUBLIC_ROUTER_ID={PUBLIC_ROUTER_ID} "
+                    "--build-arg PUBLIC_NETWORK_ID={PUBLIC_NETWORK_ID} "
+                    "--build-arg OS_AUTH_URL={OS_AUTH_URL} "
+                    "--build-arg OS_AUTH_URL_V3={OS_AUTH_URL_V3} "
+                    "--build-arg OS_TENANT_ID={OS_TENANT_ID} "
+                    "--build-arg ICONTROL_HOSTNAME={ICONTROL_HOSTNAME} "
+                    "--build-arg CONTROLLER_HOSTNAME={CONTROLLER_HOSTNAME} "
+                    "-t {registry_fullname} "
+                    "-f {project_dockerfile} "
+                    ".".format(registry_fullname=registry_fullname,
+                               project_dockerfile=project_dockerfile,
+                               **os.environ)
+                   )
     logger.debug(build_string)
     subprocess.check_call(build_string.split())
 
