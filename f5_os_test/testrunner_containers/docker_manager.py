@@ -58,7 +58,7 @@ def build_container(test_type, project):
     subprocess.check_call('echo ********'.split(),
                           shell=True,
                           cwd=CURRENTDIR,
-                          stdout=subprocess.STDOUT,
+                          stdout=sys.stdout,
                           stderr=subprocess.STDOUT)
     subprocess.check_call(build_string.split(), cwd=CURRENTDIR)
     pubstring = "docker push {}".format(registry_fullname)
