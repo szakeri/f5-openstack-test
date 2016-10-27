@@ -54,9 +54,9 @@ def build_testrunner_container(test_type, project):
                                                         '.')
     logger.debug(build_string)
     build_out = subprocess.check_call(build_string.split())
-    logger.debug('runner_container build result: {}'.format(build_out))
-    #pubstring = "docker push {}".format(registry_fullname)
-    #subprocess.check_call(pubstring.split())
+    pubstring = "docker push {}".format(registry_fullname)
+    logger.debug(pubstring)
+    subprocess.check_call(pubstring.split())
 
 def main():
     import sys
