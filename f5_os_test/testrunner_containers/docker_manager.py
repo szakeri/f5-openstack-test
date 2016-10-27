@@ -55,6 +55,7 @@ def build_container(test_type, project):
     logger.debug(project_dockerfile)
     logger.debug(build_string)
     logger.debug('curdir: {}'.format(CURRENTDIR))
+    logger.debug('os.environ" {}'.format(os.environ))
     echores = subprocess.check_output('echo -n $PWD'.split(),
                           shell=True,
                           cwd=CURRENTDIR)
