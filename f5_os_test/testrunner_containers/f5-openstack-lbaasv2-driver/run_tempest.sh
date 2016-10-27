@@ -5,6 +5,8 @@ git clone -b feature.agent_tempest_plugin https://bldr-git.int.lineratesystems.c
 cp /root/f5-os-testrunner-configs/tempest/lbaasv2/tempest.conf.lbaasv2_agent_plugin /etc/tempest/tempest.conf
 tempest="/etc/tempest/tempest.conf"
 
+crudini --set $tempest network public_router_id $PUBLIC_ROUTER_ID
+crudini --set $tempest network public_network_id $PUBLIC_NETWORK_ID
 crudini --set $tempest identity uri $OS_AUTH_URL
 crudini --set $tempest identity uri_v3 $OS_AUTH_URL_V3
 crudini --set $tempest auth admin_tenant_id $OS_TENANT_ID
