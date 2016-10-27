@@ -33,6 +33,7 @@ def render_dockerfile(**kwargs):
     infname = join(kwargs['test_type'], 'project_docker.tmpl')
     outdir = join(kwargs['test_type'], kwargs['project'])
     outfname = join(outdir, 'Dockerfile')
+    logging.debug('outfname: {}'.format(outfname))
     open(outfname, 'w').write(
         jinja2.Template(open(infname).read()).render(**kwargs)
     )
