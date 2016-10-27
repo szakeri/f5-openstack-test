@@ -46,6 +46,9 @@ def build_container(test_type, project):
     build_string = "docker build -t {} -f {} {}".format(registry_fullname,
                                                         project_dockerfile,
                                                         '.')
+    logger.debug(registry_fullname)
+    logger.debug(project_dockerfile)
+    logger.debug(build_string)
     subprocess.check_call(build_string.split())
     pubstring = "docker push {}".format(registry_fullname)
     subprocess.check_call(pubstring.split())
