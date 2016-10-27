@@ -30,7 +30,6 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
-CURRENTDIR=os.path.abspath(os.curdir)
 PDBLD_REGISTRY_PROJNAME = 'docker-registry.pdbld.f5net.com/f5-openstack-test'
 def render_dockerfile(**kwargs):
     infname = join(kwargs['test_type'], 'project_docker.tmpl')
@@ -41,22 +40,21 @@ def render_dockerfile(**kwargs):
         jinja2.Template(open(infname).read()).render(**kwargs)
     )
 
-def build_container(test_type, project):
+def build_testrunner_container(test_type, project):
     '''Generate an image from the template and specification.'''
     registry_fullname = "{}/{}_runner_{}".format(
         PDBLD_REGISTRY_PROJNAME,
         test_type,
         project)
+    logger.debug('registry_fullname: {}'.format(registry_fullname))
     project_dockerfile = join(test_type, project, 'Dockerfile')
+    logger.debug(project_dockerfile)
     build_string = "echo build -t {} -f {} {}".format(registry_fullname,
                                                         project_dockerfile,
                                                         '.')
-    logger.debug('registry_fullname: {}'.format(registry_fullname))
-    logger.debug(project_dockerfile)
     logger.debug(build_string)
-    logger.debug('curdir: {}'.format(CURRENTDIR))
-    build_out = subprocess.check_output(build_string.split(), cwd=CURRENTDIR)
-    logger.debug(build_out)
+    build_out = subprocess.check_output(build_string.split())
+    logger.debug('runner_container build result: {}'.format(build_out))
     #pubstring = "docker push {}".format(registry_fullname)
     #subprocess.check_call(pubstring.split())
 
@@ -68,7 +66,7 @@ def main():
                       branch=sys.argv[3],
                       registry_project_name=PDBLD_REGISTRY_PROJNAME,
                       timestamp=TIMESTAMP)
-    build_container(test_type=sys.argv[1], project=sys.argv[2])
+    build_testrunner_container(test_type=sys.argv[1], project=sys.argv[2])
 
 if __name__ == '__main__':
     main()
