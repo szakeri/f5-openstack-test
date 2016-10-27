@@ -49,7 +49,7 @@ def build_testrunner_container(test_type, project):
     logger.debug('registry_fullname: {}'.format(registry_fullname))
     project_dockerfile = join(test_type, project, 'Dockerfile')
     logger.debug(project_dockerfile)
-    build_string = "echo build -t {} -f {} {}".format(registry_fullname,
+    build_string = "docker build -t {} -f {} {}".format(registry_fullname,
                                                         project_dockerfile,
                                                         '.')
     logger.debug(build_string)
