@@ -15,13 +15,13 @@
 #
 
 
-FROM {{ registry_project_name }}/{{ test_type }}:latest
+FROM {{ registry_project_name }}/tempest:latest
 
 RUN pip install git+https://github.com/openstack/neutron.git@stable/{{ branch }}
 RUN pip install git+https://github.com/openstack/neutron-lbaas.git@stable/{{ branch }}
-RUN mkdir -p /etc/{{ test_type }}
+RUN mkdir -p /etc/tempest
 RUN mkdir -p /root/{{ project }}
-RUN {{ test_type }} workspace register --name {{ timestamp }}_test --path /root/{{ project }}/
-ADD {{ test_type  }}/run_{{ test_type }}.sh /root/
+RUN tempest workspace register --name {{ timestamp }}_test --path /root/{{ project }}/
+ADD tempest/{{ project }}/run_tempest.sh /root/
 WORKDIR /root/{{ project }}
-ENTRYPOINT ["/root/run_{{ test_type }}.sh"]
+ENTRYPOINT ["/root/run_tempest.sh"]
