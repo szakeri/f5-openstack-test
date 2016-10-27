@@ -19,9 +19,13 @@
 and a container orchestration environment'''
 
 import jinja2
+import logging
 from os.path import join
 import subprocess
 import time
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 PDBLD_REGISTRY_PROJNAME = 'docker-registry.pdbld.f5net.com/f5-openstack-test'
 def render_dockerfile(**kwargs):
