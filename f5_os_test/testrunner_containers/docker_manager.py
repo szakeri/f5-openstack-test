@@ -55,8 +55,9 @@ def build_container(test_type, project):
     logger.debug(project_dockerfile)
     logger.debug(build_string)
     logger.debug('curdir: {}'.format(os.path.abspath(os.curdir)))
-    echores = subprocess.check_output('echo xaxaxa'.split(),
+    echores = subprocess.check_output('echo $PWD'.split(),
                           cwd=CURRENTDIR)
+    logger.debug(echores)
     #subprocess.check_call(build_string.split(), cwd=CURRENTDIR)
     #pubstring = "docker push {}".format(registry_fullname)
     #subprocess.check_call(pubstring.split())
