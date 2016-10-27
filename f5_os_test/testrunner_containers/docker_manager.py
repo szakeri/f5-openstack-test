@@ -56,6 +56,7 @@ def build_container(test_type, project):
     logger.debug(build_string)
     logger.debug('curdir: {}'.format(os.path.abspath(os.curdir)))
     echores = subprocess.check_output('echo -n $PWD'.split(),
+                          shell=True,
                           cwd=CURRENTDIR)
     logger.debug(echores)
     #subprocess.check_call(build_string.split(), cwd=CURRENTDIR)
