@@ -55,7 +55,7 @@ def build_container(test_type, project):
     logger.debug(project_dockerfile)
     logger.debug(build_string)
     logger.debug('curdir: {}'.format(os.path.abspath(os.curdir)))
-    echores = subprocess.check_output('echo ********'.split(),
+    echores = subprocess.check_output('echo xaxaxa'.split(),
                           shell=True,
                           cwd=CURRENTDIR,
                           stderr=subprocess.STDOUT)
