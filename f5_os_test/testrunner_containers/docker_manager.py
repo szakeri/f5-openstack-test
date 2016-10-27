@@ -26,6 +26,7 @@ import time
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
 
 PDBLD_REGISTRY_PROJNAME = 'docker-registry.pdbld.f5net.com/f5-openstack-test'
 def render_dockerfile(**kwargs):
