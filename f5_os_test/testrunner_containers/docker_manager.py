@@ -47,7 +47,7 @@ def build_container(test_type, project):
     build_string = "docker build -t {} -f {} {}".format(registry_fullname,
                                                         project_dockerfile,
                                                         '.')
-    logger.debug(registry_fullname)
+    logger.debug('registry_fullname: {}'.format(registry_fullname))
     logger.debug(project_dockerfile)
     logger.debug(build_string)
     subprocess.check_call(build_string.split())
