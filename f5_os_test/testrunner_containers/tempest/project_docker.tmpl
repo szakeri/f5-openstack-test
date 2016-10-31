@@ -26,7 +26,6 @@ ARG CONTROLLER_IPADDR
 RUN pip install git+https://github.com/openstack/neutron.git@stable/{{ branch }}
 RUN pip install git+https://github.com/openstack/neutron-lbaas.git@stable/{{ branch }}
 RUN mkdir -p /etc/tempest
-RUN mkdir -p fgoo
 RUN mkdir -p /root/{{ project }}
 RUN tempest workspace register --name {{ timestamp }}_test --path /root/{{ project }}/
 ADD tempest/{{ project }}/run_tempest.sh /root/

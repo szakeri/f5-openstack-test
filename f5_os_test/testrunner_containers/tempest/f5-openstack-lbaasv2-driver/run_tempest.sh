@@ -16,6 +16,7 @@ crudini --set $tempest f5_lbaasv2_driver icontrol_username admin
 crudini --set $tempest f5_lbaasv2_driver icontrol_password admin
 crudini --set $tempest f5_lbaasv2_driver transport_url rabbit://guest:guest@$CONTROLLER_IPADDR:5672/
 # Install the plugin by installing the f5lbaasv2driver
+git clone -b liberty https://github.com/F5Networks/f5-openstack-lbaasv2-driver.git /root/f5-openstack-lbaasv2-driver/
 pip install /root/f5-openstack-lbaasv2-driver/
 # Run tempest tests in workspace
 tempest run --workspace tempest_test
