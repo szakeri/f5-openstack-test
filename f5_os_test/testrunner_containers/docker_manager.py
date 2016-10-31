@@ -30,6 +30,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
+CTXT = os.path.abspatch(os.curdir)
 PDBLD_REGISTRY_PROJNAME = 'docker-registry.pdbld.f5net.com/f5-openstack-test'
 def render_dockerfile(**kwargs):
     infname = join(kwargs['test_type'], 'project_docker.tmpl')
@@ -51,7 +52,7 @@ def _build_testrunner_container(test_type, project):
     registry_fullname = "{}/{}/{}".format(PDBLD_REGISTRY_PROJNAME,
                                           test_type,
                                           project)
-    project_dockerfile = join(test_type, project, 'Dockerfile')
+    project_dockerfile = join(CTXT, test_type, project, 'Dockerfile')
     build_string = ("docker build "
                     "--build-arg PUBLIC_ROUTER_ID={PUBLIC_ROUTER_ID} "
                     "--build-arg PUBLIC_NETWORK_ID={PUBLIC_NETWORK_ID} "
