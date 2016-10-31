@@ -15,13 +15,13 @@
 #
 FROM {{ registry_project_name }}/tempest:latest
 
-ARG PUBLIC_ROUTER_ID
-ARG PUBLIC_NETWORK_ID
-ARG OS_AUTH_URL
-ARG OS_AUTH_URL_V3
-ARG OS_TENANT_ID
-ARG ICONTROL_IPADDR
-ARG CONTROLLER_IPADDR
+ENV PUBLIC_ROUTER_ID
+ENV PUBLIC_NETWORK_ID
+ENV OS_AUTH_URL
+ENV OS_AUTH_URL_V3
+ENV OS_TENANT_ID
+ENV ICONTROL_IPADDR
+ENV CONTROLLER_IPADDR
 
 RUN pip install git+https://github.com/openstack/neutron.git@stable/{{ branch }}
 RUN pip install git+https://github.com/openstack/neutron-lbaas.git@stable/{{ branch }}
