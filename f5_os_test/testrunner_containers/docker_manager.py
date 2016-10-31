@@ -46,8 +46,12 @@ def _publish_testrunner_container(registry_fullname):
     logger.debug(pubstring)
     subprocess.check_call(pubstring.split())
 
-def _build_testrunner_container(project_dockerfile, registry_fullname):
+def _build_testrunner_container(test_type, project):
     '''Generate an image from the template and specification.'''
+    registry_fullname = "{}/{}/{}".format(PDBLD_REGISTRY_PROJNAME,
+                                          test_type,
+                                          project)
+    project_dockerfile = join(test_type, project, 'Dockerfile')
     build_string = ("docker build "
                     "--build-arg PUBLIC_ROUTER_ID={PUBLIC_ROUTER_ID} "
                     "--build-arg PUBLIC_NETWORK_ID={PUBLIC_NETWORK_ID} "
