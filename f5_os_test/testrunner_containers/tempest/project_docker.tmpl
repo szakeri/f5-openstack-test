@@ -31,5 +31,4 @@ RUN mkdir -p /root/{{ project }}
 RUN tempest workspace register --name {{ timestamp }}_test --path /root/{{ project }}/
 ADD tempest/{{ project }}/run_tempest.sh /root/
 WORKDIR /root/{{ project }}
-#ENTRYPOINT ["/root/run_tempest.sh"]
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/root/run_tempest.sh"]
