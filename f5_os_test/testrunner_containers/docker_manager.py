@@ -73,7 +73,7 @@ def build_and_publish(test_type, project):
     logger.debug('registry_fullname: {}'.format(registry_fullname))
     project_dockerfile = join(test_type, project, 'Dockerfile')
     logger.debug(project_dockerfile)
-    _build_testrunner_container(project_dockerfilem registry_fullname)
+    _build_testrunner_container(project_dockerfile, registry_fullname)
     _publish_testrunner_container(registry_fullname)
 
 
