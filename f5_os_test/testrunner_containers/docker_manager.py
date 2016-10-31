@@ -55,7 +55,7 @@ def _build_testrunner_container(project_dockerfile, registry_fullname):
                     "--build-arg OS_AUTH_URL_V3={OS_AUTH_URL_V3} "
                     "--build-arg OS_TENANT_ID={OS_TENANT_ID} "
                     "--build-arg ICONTROL_HOSTNAME={ICONTROL_HOSTNAME} "
-                    "--build-arg CONTROLLER_HOSTNAME={CONTROLLER_HOSTNAME} "
+                    "--build-arg CONTROLLER_ADDRESS={CONTROLLER_ADDRESS} "
                     "-t {registry_fullname} "
                     "-f {project_dockerfile} "
                     ".".format(registry_fullname=registry_fullname,
