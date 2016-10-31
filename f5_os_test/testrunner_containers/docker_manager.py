@@ -48,6 +48,7 @@ def _publish_testrunner_container(registry_fullname):
 
 def _build_testrunner_container(project_dockerfile, registry_fullname):
     '''Generate an image from the template and specification.'''
+    logger.debug(registry_fullname)
     build_string = ("docker build "
                     "--build-arg PUBLIC_ROUTER_ID={PUBLIC_ROUTER_ID} "
                     "--build-arg PUBLIC_NETWORK_ID={PUBLIC_NETWORK_ID} "
