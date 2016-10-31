@@ -42,7 +42,7 @@ def render_dockerfile(**kwargs):
     )
 
 def _publish_testrunner_container(registry_fullname):
-    pubstring = "docker push {}xxxxxx".format(registry_fullname)
+    pubstring = "docker push {}".format(registry_fullname)
     logger.debug(pubstring)
     subprocess.check_call(pubstring.split())
 
