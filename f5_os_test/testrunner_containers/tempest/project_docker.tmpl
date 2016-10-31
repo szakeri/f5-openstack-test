@@ -33,4 +33,5 @@ RUN mkdir -p fgoo
 #WORKDIR /root/{{ project }}
 #ENTRYPOINT ["/root/run_tempest.sh"]
 #ENTRYPOINT ["ls"]
-CMD ["ls"]
+#CMD ["ls"]
+ENTRYPOINT ["/usr/bin/bash"]
