@@ -30,7 +30,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 
-CTXT = os.path.abspatch(os.curdir)
+CTXT = os.path.abspath(os.curdir)
 PDBLD_REGISTRY_PROJNAME = 'docker-registry.pdbld.f5net.com/f5-openstack-test'
 def render_dockerfile(**kwargs):
     infname = join(kwargs['test_type'], 'project_docker.tmpl')
