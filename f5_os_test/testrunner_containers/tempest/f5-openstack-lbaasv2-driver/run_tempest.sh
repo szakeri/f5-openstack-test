@@ -2,8 +2,7 @@
 
 # Make appropriate changes to tempest.conf
 git clone https://bldr-git.int.lineratesystems.com/openstack/f5-os-testrunner-configs.git /root/f5-os-testrunner-configs
-cp -R /root/f5-os-testrunner-configs/tempest/lbaasv2/tempest.conf /etc/tempest/
-cp /root/f5-os-testrunner-configs/tempest/lbaasv2/accounts.yaml /etc/tempest/accounts.yaml
+cp -R /root/f5-os-testrunner-configs/tempest/lbaasv2/ /etc/tempest/
 tempest="/etc/tempest/tempest.conf"
 
 crudini --set $tempest network public_router_id $PUBLIC_ROUTER_ID
