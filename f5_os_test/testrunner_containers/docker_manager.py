@@ -40,19 +40,14 @@ def render_dockerfile(**kwargs):
     open(outfname, 'w').write(
         jinja2.Template(open(infname).read()).render(**kwargs)
     )
-    _build_testrunner_container(kwargs['test_type'], kwargs['project'])
 
 def _publish_testrunner_container(registry_fullname):
     pubstring = "docker push {}".format(registry_fullname)
     logger.debug(pubstring)
     subprocess.check_call(pubstring.split())
 
-def _build_testrunner_container(test_type, project):
+def _build_testrunner_container(project_dockerfile, registry_fullname):
     '''Generate an image from the template and specification.'''
-    registry_fullname = "{}/{}/{}".format(PDBLD_REGISTRY_PROJNAME,
-                                          test_type,
-                                          project)
-    project_dockerfile = join(CTXT, test_type, project, 'Dockerfile')
     build_string = ("docker build "
                     "--build-arg PUBLIC_ROUTER_ID={PUBLIC_ROUTER_ID} "
                     "--build-arg PUBLIC_NETWORK_ID={PUBLIC_NETWORK_ID} "
@@ -76,7 +71,7 @@ def build_and_publish(test_type, project):
         test_type,
         project)
     logger.debug('registry_fullname: {}'.format(registry_fullname))
-    project_dockerfile = join(test_type, project, 'Dockerfile')
+    project_dockerfile = join(CTXT, test_type, project, 'Dockerfile')
     logger.debug(project_dockerfile)
     _build_testrunner_container(project_dockerfile, registry_fullname)
     _publish_testrunner_container(registry_fullname)
@@ -90,7 +85,7 @@ def main():
                       branch=sys.argv[3],
                       registry_project_name=PDBLD_REGISTRY_PROJNAME,
                       timestamp=TIMESTAMP)
-    build_testrunner_container(test_type=sys.argv[1], project=sys.argv[2])
+    build_and_publish(test_type=sys.argv[1], project=sys.argv[2])
 
 if __name__ == '__main__':
     main()
