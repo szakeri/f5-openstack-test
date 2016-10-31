@@ -20,8 +20,8 @@ ARG PUBLIC_NETWORK_ID
 ARG OS_AUTH_URL
 ARG OS_AUTH_URL_V3
 ARG OS_TENANT_ID
-ARG ICONTROL_HOSTNAME
-ARG CONTROLLER_HOSTNAME
+ARG ICONTROL_IPADDR
+ARG CONTROLLER_IPADDR
 
 RUN pip install git+https://github.com/openstack/neutron.git@stable/{{ branch }}
 RUN pip install git+https://github.com/openstack/neutron-lbaas.git@stable/{{ branch }}
