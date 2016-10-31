@@ -2,7 +2,7 @@
 
 # Make appropriate changes to tempest.conf
 git clone https://bldr-git.int.lineratesystems.com/openstack/f5-os-testrunner-configs.git /root/f5-os-testrunner-configs
-cp /root/f5-os-testrunner-configs/tempest/lbaasv2/tempest.conf.lbaasv2_agent_plugin /etc/tempest/tempest.conf
+cp -R /root/f5-os-testrunner-configs/tempest/lbaasv2/tempest.conf /etc/tempest/
 cp /root/f5-os-testrunner-configs/tempest/lbaasv2/accounts.yaml /etc/tempest/accounts.yaml
 tempest="/etc/tempest/tempest.conf"
 
