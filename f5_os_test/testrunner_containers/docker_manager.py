@@ -67,15 +67,19 @@ def _build_testrunner_container(project_dockerfile, registry_fullname):
     subprocess.check_call(build_string.split())
 
 def build_and_publish(test_type, project):
+    registry_refname = "{}/{}_runner_{}".format(
+        PDBLD_REGISTRY_PROJNAME,
+        test_type,
+        project)
+    logger.debug('registry_fullname: {}'.format(registry_refname))
+    project_dockerfile = join(CTXT, test_type, project, 'Dockerfile')
+    logger.debug(project_dockerfile)
+    _build_testrunner_container(project_dockerfile, registry_refname)
     registry_fullname = "{}/{}_{}_runner_{}".format(
         'CUTUUID',
         PDBLD_REGISTRY_PROJNAME,
         test_type,
         project)
-    logger.debug('registry_fullname: {}'.format(registry_fullname))
-    project_dockerfile = join(CTXT, test_type, project, 'Dockerfile')
-    logger.debug(project_dockerfile)
-    _build_testrunner_container(project_dockerfile, registry_fullname)
     _publish_testrunner_container(registry_fullname)
 
 
