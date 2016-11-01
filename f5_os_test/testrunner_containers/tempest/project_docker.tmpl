@@ -32,8 +32,14 @@ ENV CONTROLLER_IPADDR=$CONTROLLER_IPADDR
 ENV TEMPEST_CONFIG_DIR=/etc/tempest/tempest.conf
 
 RUN pip install git+https://github.com/openstack/neutron.git@stable/{{ branch }}
-RUN pip install git+https://github.com/openstack/neutron-lbaas.git@stable/{{ branch }}
-RUN mkdir -p /etc/tempest
+RUN pip install git+https://github.com/F5Networks/neutron-lbaas.git@stable/{{ branch }}
+RUN pip install pytest
+RUN git clone git@bldr-git.int.lineratesystems.com:tools/pytest-autolog.git
+RUN pip install pytest-autolog
+RUN git clone git@bldr-git.int.lineratesystems.com:tools/pytest-symbols.git
+RUN pip install pytest-symbols
+RUN git clone git@bldr-git.int.lineratesystems.com:tools/pytest-meta.git
+RUN pip install pytest-meta
 RUN mkdir -p /root/{{ project }}
 RUN tempest workspace register --name {{ timestamp }}_test --path /root/{{ project }}/
 ADD tempest/{{ project }}/run_tempest.sh /root/
