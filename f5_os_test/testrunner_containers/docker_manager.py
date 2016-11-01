@@ -67,7 +67,8 @@ def _build_testrunner_container(project_dockerfile, registry_fullname):
     subprocess.check_call(build_string.split())
 
 def build_and_publish(test_type, project):
-    registry_fullname = "{}/{}_runner_{}".format(
+    registry_fullname = "{}/{}_{}_runner_{}".format(
+        os.environ['USER'],
         PDBLD_REGISTRY_PROJNAME,
         test_type,
         project)

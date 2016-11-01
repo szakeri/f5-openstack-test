@@ -29,6 +29,7 @@ ARG ICONTROL_IPADDR
 ENV ICONTROL_IPADDR=$ICONTROL_IPADDR
 ARG CONTROLLER_IPADDR
 ENV CONTROLLER_IPADDR=$CONTROLLER_IPADDR
+ENV TEMPEST_CONFIG_DIR=/etc/tempest/tempest.conf
 
 RUN pip install git+https://github.com/openstack/neutron.git@stable/{{ branch }}
 RUN pip install git+https://github.com/openstack/neutron-lbaas.git@stable/{{ branch }}
