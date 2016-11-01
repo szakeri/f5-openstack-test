@@ -18,4 +18,4 @@ crudini --set $TEMPEST_CONF f5_lbaasv2_driver transport_url rabbit://guest:guest
 git clone -b liberty https://github.com/F5Networks/f5-openstack-lbaasv2-driver.git /root/f5-openstack-lbaasv2-driver/
 pip install /root/f5-openstack-lbaasv2-driver/
 # Run tempest tests in workspace
-tempest run --workspace tempest_test
+tempest run --config-file ${TEMPEST_CONF}
