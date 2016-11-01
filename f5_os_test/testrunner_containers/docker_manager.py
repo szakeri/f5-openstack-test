@@ -66,19 +66,17 @@ def _build_testrunner_container(project_dockerfile, registry_fullname):
     logger.debug(build_string)
     subprocess.check_call(build_string.split())
 
-def build_and_publish(test_type, project):
-    registry_refname = "{}/{}_runner_{}".format(
+def build_and_publish(test_type, project, branch, subjectcode_id):
+    registry_fullname = "{}/{}_runner_{}_{}_{}".format(
         PDBLD_REGISTRY_PROJNAME,
         test_type,
-        project)
-    logger.debug('registry_fullname: {}'.format(registry_refname))
+        project,
+        branch,
+        subjectcode_id)
+    logger.debug('registry_fullname: {}'.format(registry_fullname))
     project_dockerfile = join(CTXT, test_type, project, 'Dockerfile')
     logger.debug(project_dockerfile)
-    _build_testrunner_container(project_dockerfile, registry_refname)
-    registry_fullname = "{}/{}_runner_{}".format(
-        PDBLD_REGISTRY_PROJNAME,
-        test_type,
-        project)
+    _build_testrunner_container(project_dockerfile, registry_fullname)
     _publish_testrunner_container(registry_fullname)
 
 
@@ -90,7 +88,10 @@ def main():
                       branch=sys.argv[3],
                       registry_project_name=PDBLD_REGISTRY_PROJNAME,
                       timestamp=TIMESTAMP)
-    build_and_publish(test_type=sys.argv[1], project=sys.argv[2])
+    build_and_publish(test_type=sys.argv[1],
+                      project=sys.argv[2],
+                      branch=sys.argv[3],
+                      subjectcode_id=sys.argv[4])
 
 if __name__ == '__main__':
     main()
