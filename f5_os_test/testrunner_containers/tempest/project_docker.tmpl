@@ -31,8 +31,6 @@ ARG CONTROLLER_IPADDR
 ENV CONTROLLER_IPADDR=$CONTROLLER_IPADDR
 ENV TEMPEST_CONFIG_DIR=/etc/tempest/tempest.conf
 
-RUN pip install git+https://github.com/openstack/neutron.git@stable/{{ branch }}
-RUN pip install git+https://github.com/F5Networks/neutron-lbaas.git@stable/{{ branch }}
 RUN pip install pytest
 RUN git clone git@bldr-git.int.lineratesystems.com:tools/pytest-autolog.git
 RUN pip install pytest-autolog
@@ -40,8 +38,34 @@ RUN git clone git@bldr-git.int.lineratesystems.com:tools/pytest-symbols.git
 RUN pip install pytest-symbols
 RUN git clone git@bldr-git.int.lineratesystems.com:tools/pytest-meta.git
 RUN pip install pytest-meta
-RUN mkdir -p /root/{{ project }}
-RUN tempest workspace register --name {{ timestamp }}_test --path /root/{{ project }}/
-ADD tempest/{{ project }}/run_tempest.sh /root/
-WORKDIR /root/{{ project }}
-ENTRYPOINT ["/root/run_tempest.sh"]
+
+# cloning tempest and F5 neutron-lbaas
+RUN git clone -b {{ branch }}  https://github.com/F5Networks/neutron-lbaas.git 
+RUN git clone https://github.com/openstack/tempest.git
+RUN pip install tempest/ 
+
+RUN pip install -r neutron-lbaas/requirements.txt
+RUN pip install -r neutron-lbaas/test-requirements.txt 
+
+#RUN mkdir -p /root/{{ project }}
+#RUN tempest workspace register --name {{ timestamp }}_test --path /root/{{ project }}/
+#ADD tempest/{{ project }}/run_tempest.sh /root/
+#WORKDIR /root/{{ project }}
+#ENTRYPOINT ["/root/run_tempest.sh"]
+
+git clone https://bldr-git.int.lineratesystems.com/openstack/f5-os-testrunner-configs.git /root/f5-os-testrunner-configs
+RUN cp -R /root/f5-os-testrunner-configs/tempest/lbaasv2/* /etc/tempest/
+
+RUN TEMPEST_CONF="/etc/tempest/tempest.conf"
+
+RUN crudini --set $TEMPEST_CONF network public_router_id $PUBLIC_ROUTER_ID
+RUN crudini --set $TEMPEST_CONF network public_network_id $PUBLIC_NETWORK_ID
+RUN crudini --set $TEMPEST_CONF identity uri $OS_AUTH_URL
+RUN crudini --set $TEMPEST_CONF identity uri_v3 $OS_AUTH_URL_V3
+RUN crudini --set $TEMPEST_CONF auth admin_tenant_id $OS_TENANT_ID
+RUN crudini --set $TEMPEST_CONF f5_lbaasv2_driver icontrol_hostname $ICONTROL_IPADDR
+RUN crudini --set $TEMPEST_CONF f5_lbaasv2_driver icontrol_username admin
+RUN crudini --set $TEMPEST_CONF f5_lbaasv2_driver icontrol_password admin
+RUN crudini --set $TEMPEST_CONF f5_lbaasv2_driver transport_url rabbit://guest:guest@$CONTROLLER_IPADDR:5672/
+# Run tempest tests in workspace
+RUN tempest run --config-file ${TEMPEST_CONF}
