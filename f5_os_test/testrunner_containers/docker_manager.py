@@ -75,8 +75,7 @@ def build_and_publish(test_type, project):
     project_dockerfile = join(CTXT, test_type, project, 'Dockerfile')
     logger.debug(project_dockerfile)
     _build_testrunner_container(project_dockerfile, registry_refname)
-    registry_fullname = "{}/{}_{}_runner_{}".format(
-        'CUTUUID',
+    registry_fullname = "{}/{}_runner_{}".format(
         PDBLD_REGISTRY_PROJNAME,
         test_type,
         project)
